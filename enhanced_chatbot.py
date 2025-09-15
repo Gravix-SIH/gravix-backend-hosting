@@ -189,10 +189,13 @@ Would you like me to help you find local mental health resources or talk about w
             if mood and mood in ['anxious', 'depressed', 'angry', 'lonely', 'scared']:
                 bot_response += f"\n\n{self.get_coping_strategy(mood)}"
 
-            # Store conversation
-            session.store_conversation(user_message, bot_response, mood_detected=mood)
+            # Post-process response to add intelligent suggestions
+            enhanced_response = self.enhance_response_with_suggestions(bot_response, user_message, session)
 
-            return bot_response
+            # Store conversation
+            session.store_conversation(user_message, enhanced_response, mood_detected=mood)
+
+            return enhanced_response
 
         except Exception as e:
             error_response = "I'm having trouble connecting right now. Please try again in a moment. If you're in crisis, please call 988 for immediate support."
@@ -303,6 +306,259 @@ Would you like me to share some anxiety coping strategies or help you find profe
         if self.current_session:
             return self.current_session.to_dict()
         return {}
+
+    def enhance_response_with_suggestions(self, bot_response: str, user_message: str, session: UserSession) -> str:
+        """Post-process bot response to add intelligent suggestions when appropriate."""
+        enhanced_response = bot_response
+
+        # Check if user is sharing assessment scores
+        score_analysis = self._detect_and_analyze_scores(user_message)
+        if score_analysis:
+            enhanced_response += f"\n\n{score_analysis}"
+            self._update_suggestion_history('results', session)
+
+        # Add assessment suggestions
+        elif self._should_suggest_assessment(user_message, bot_response, session):
+            assessment_type = self._determine_assessment_type(user_message, bot_response)
+            suggestion = self._get_assessment_suggestion(assessment_type)
+            enhanced_response += f"\n\n{suggestion}"
+            self._update_suggestion_history('assessment', session)
+
+        # Add mood tracking suggestions
+        elif self._should_suggest_mood_summary(user_message, bot_response, session):
+            suggestion = self._get_mood_summary_suggestion(session)
+            enhanced_response += f"\n\n{suggestion}"
+            self._update_suggestion_history('mood', session)
+
+        # Add result analysis suggestions
+        elif self._should_suggest_result_analysis(user_message, bot_response, session):
+            suggestion = self._get_result_analysis_suggestion()
+            enhanced_response += f"\n\n{suggestion}"
+            self._update_suggestion_history('results', session)
+
+        return enhanced_response
+
+    def _should_suggest_assessment(self, user_msg: str, bot_response: str, session: UserSession) -> bool:
+        """Determine if we should suggest an assessment."""
+        # Don't suggest if already suggested recently
+        if self._recently_suggested('assessment', session):
+            return False
+
+        # Don't suggest if user just declined
+        decline_words = ['no thanks', 'not interested', 'maybe later', 'not now', 'no']
+        if any(word in user_msg.lower() for word in decline_words):
+            return False
+
+        # Don't suggest if already in crisis mode
+        if '988' in bot_response or 'crisis' in bot_response.lower() or 'emergency' in bot_response.lower():
+            return False
+
+        # Suggest if user mentions specific symptoms
+        symptom_patterns = [
+            r'\b(anxious|worried|stressed|overwhelmed|panic)\b',
+            r'\b(sad|depressed|down|hopeless|empty|worthless)\b',
+            r'\b(not sure how.*feel|uncertain about|confused about.*mood)\b',
+            r'\b(been feeling|having trouble|struggling with)\b',
+            r'\b(can\'t cope|hard to handle|too much)\b'
+        ]
+
+        user_lower = user_msg.lower()
+        return any(re.search(pattern, user_lower) for pattern in symptom_patterns)
+
+    def _should_suggest_mood_summary(self, user_msg: str, bot_response: str, session: UserSession) -> bool:
+        """Determine if we should suggest mood summary."""
+        if self._recently_suggested('mood', session):
+            return False
+
+        # Suggest if user asks about patterns, progress, or tracking
+        mood_summary_patterns = [
+            r'\b(how.*been.*feeling|pattern|progress|track|over time)\b',
+            r'\b(getting better|getting worse|changing|improving)\b',
+            r'\b(last week|past few days|recently|lately)\b'
+        ]
+
+        user_lower = user_msg.lower()
+        has_mood_data = bool(self.get_mood_summary(session))
+
+        return has_mood_data and any(re.search(pattern, user_lower) for pattern in mood_summary_patterns)
+
+    def _should_suggest_result_analysis(self, user_msg: str, bot_response: str, session: UserSession) -> bool:
+        """Determine if we should suggest result analysis."""
+        if self._recently_suggested('results', session):
+            return False
+
+        # Check if user is sharing actual scores
+        score_patterns = [
+            r'\b(score.*\d+|got.*\d+|result.*\d+|\d+.*score)\b',
+            r'\b(phq.*\d+|gad.*\d+)\b'
+        ]
+
+        user_lower = user_msg.lower()
+        if any(re.search(pattern, user_lower) for pattern in score_patterns):
+            # User is sharing actual scores - analyze them immediately
+            return False  # We'll handle this differently
+
+        # Suggest if user mentions taking assessments but hasn't shared scores
+        result_patterns = [
+            r'\b(took.*test|completed.*assessment|got.*results|external)\b',
+            r'\b(depression.*test|anxiety.*test|mental.*health.*screening)\b',
+            r'\b(therapist gave|doctor gave|online.*assessment)\b'
+        ]
+
+        return any(re.search(pattern, user_lower) for pattern in result_patterns)
+
+    def _determine_assessment_type(self, user_msg: str, bot_response: str) -> str:
+        """Determine which assessment to suggest based on context."""
+        anxiety_keywords = ['anxious', 'worried', 'stress', 'nervous', 'panic', 'overwhelmed']
+        depression_keywords = ['sad', 'depressed', 'down', 'hopeless', 'empty', 'worthless']
+
+        user_lower = user_msg.lower()
+
+        anxiety_score = sum(1 for keyword in anxiety_keywords if keyword in user_lower)
+        depression_score = sum(1 for keyword in depression_keywords if keyword in user_lower)
+
+        if anxiety_score > depression_score:
+            return 'anxiety'
+        elif depression_score > anxiety_score:
+            return 'depression'
+        else:
+            return 'general'  # Offer both
+
+    def _get_assessment_suggestion(self, assessment_type: str) -> str:
+        """Generate contextual assessment suggestion with direct links."""
+        from assessment_api import AssessmentAPIClient
+
+        client = AssessmentAPIClient()
+
+        if assessment_type == 'anxiety':
+            link = client.get_assessment_link('gad7')
+            return f"""**Quick Suggestion**: Since you mentioned feeling anxious, here's a GAD-7 anxiety screening that might help: {link}
+
+This brief questionnaire can help you better understand your anxiety levels. After completing it, feel free to share your results with me and I'll help you understand what they mean."""
+
+        elif assessment_type == 'depression':
+            link = client.get_assessment_link('phq9')
+            return f"""**Quick Suggestion**: It sounds like you're going through a difficult time. Here's a PHQ-9 depression screening that might help: {link}
+
+This assessment can help clarify how you're feeling and could be useful information to share with a healthcare provider. I can help you interpret the results afterward."""
+
+        else:  # general
+            phq9_link = client.get_assessment_link('phq9')
+            gad7_link = client.get_assessment_link('gad7')
+            return f"""**Quick Suggestion**: Here are some mental health screenings that might help you understand your current well-being:
+
+• **Depression (PHQ-9)**: {phq9_link}
+• **Anxiety (GAD-7)**: {gad7_link}
+
+After completing either assessment, I can help you understand your results and what they might mean."""
+
+    def _get_mood_summary_suggestion(self, session: UserSession) -> str:
+        """Generate mood summary suggestion."""
+        # Generate actual mood summary instead of asking user to type command
+        mood_data = self.get_mood_summary(session)
+        if mood_data:
+            summary_text = "**Your Recent Mood Patterns**:\n"
+            for date, moods in mood_data.items():
+                mood_list = [m['mood'] for m in moods]
+                summary_text += f"• {date}: {', '.join(mood_list)}\n"
+            summary_text += "\nI notice you're asking about your mood patterns. This is what I've observed during our conversations."
+            return summary_text
+        else:
+            return "**Mood Tracking**: I haven't tracked enough mood data yet, but I'm paying attention to how you're feeling during our conversations to help identify patterns over time."
+
+    def _get_result_analysis_suggestion(self) -> str:
+        """Generate result analysis suggestion."""
+        return """**Assessment Analysis**: I'd be happy to help you understand those assessment results! You can share your scores with me like this:
+
+"I got a score of 12 on the PHQ-9" or "My GAD-7 result was 8"
+
+I can then explain what these numbers mean and provide personalized insights about your mental health screening."""
+
+    def _detect_and_analyze_scores(self, user_message: str) -> Optional[str]:
+        """Detect if user is sharing assessment scores and analyze them."""
+        user_lower = user_message.lower()
+
+        # Look for PHQ-9 scores
+        phq_patterns = [
+            r'\b(?:phq.*?(\d+)|(\d+).*?phq)\b',
+            r'\b(?:depression.*?score.*?(\d+)|(\d+).*?depression.*?score)\b'
+        ]
+
+        # Look for GAD-7 scores
+        gad_patterns = [
+            r'\b(?:gad.*?(\d+)|(\d+).*?gad)\b',
+            r'\b(?:anxiety.*?score.*?(\d+)|(\d+).*?anxiety.*?score)\b'
+        ]
+
+        # General score patterns
+        general_patterns = [
+            r'\b(?:score.*?(\d+)|got.*?(\d+)|result.*?(\d+))\b'
+        ]
+
+        # Check for PHQ-9
+        for pattern in phq_patterns:
+            match = re.search(pattern, user_lower)
+            if match:
+                score = int([g for g in match.groups() if g][0])
+                if 0 <= score <= 27:  # Valid PHQ-9 range
+                    return self.analyze_assessment_results('phq9', score)
+
+        # Check for GAD-7
+        for pattern in gad_patterns:
+            match = re.search(pattern, user_lower)
+            if match:
+                score = int([g for g in match.groups() if g][0])
+                if 0 <= score <= 21:  # Valid GAD-7 range
+                    return self.analyze_assessment_results('gad7', score)
+
+        # Check for general scores with context clues
+        for pattern in general_patterns:
+            match = re.search(pattern, user_lower)
+            if match:
+                score = int([g for g in match.groups() if g][0])
+
+                # Determine type based on context
+                if any(word in user_lower for word in ['depression', 'sad', 'down', 'phq']):
+                    if 0 <= score <= 27:
+                        return self.analyze_assessment_results('phq9', score)
+                elif any(word in user_lower for word in ['anxiety', 'anxious', 'worried', 'gad']):
+                    if 0 <= score <= 21:
+                        return self.analyze_assessment_results('gad7', score)
+
+        return None
+
+    def _recently_suggested(self, suggestion_type: str, session: UserSession) -> bool:
+        """Check if we suggested this type recently."""
+        if not session:
+            return False
+
+        # Check session history for recent suggestions
+        conversation_history = session.database.get_recent_conversations(session.user_id, 10)
+        if len(conversation_history) < 5:  # Not enough history
+            return False
+
+        # Look at last 5 assistant messages for similar suggestions
+        recent_assistant_messages = [
+            conv['response'] for conv in conversation_history[-5:]
+        ]
+
+        # Check if we've suggested this type recently
+        suggestion_keywords = {
+            'assessment': ['Quick Suggestion', 'PHQ-9', 'GAD-7', 'screening'],
+            'mood': ['Recent Mood Patterns', 'Mood Tracking'],
+            'results': ['Assessment Analysis', 'share your scores']
+        }
+
+        keywords = suggestion_keywords.get(suggestion_type, [])
+        return any(
+            any(keyword in msg for keyword in keywords)
+            for msg in recent_assistant_messages
+        )
+
+    def _update_suggestion_history(self, suggestion_type: str, session: UserSession):
+        """Update suggestion history in session."""
+        # This is tracked implicitly through conversation history
+        pass
 
     def cleanup_sessions(self, hours: int = 24) -> int:
         """Clean up inactive sessions."""

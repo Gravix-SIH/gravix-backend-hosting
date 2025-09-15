@@ -4,3 +4,4 @@ __pycache__/
 *.pyc
 .user_id
 user_data/
+user_language_preferences.json

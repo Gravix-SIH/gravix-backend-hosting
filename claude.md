@@ -38,8 +38,15 @@ python main.py
 # Run enhanced CLI chatbot with database integration
 python main_enhanced.py
 
+# Run multilingual chatbot (English, Hindi, Tamil)
+python main_multilingual.py
+
 # Run with backend API (when available)
 python main_enhanced.py --backend --api-url http://localhost:8000
+
+# Run multilingual with specific language
+python main_multilingual.py --language hi  # Hindi
+python main_multilingual.py --language ta  # Tamil
 
 # Set OpenAI API key in .env file
 OPENAI_API_KEY=your_key_here
@@ -109,11 +116,15 @@ The system prioritizes safety through:
 ```
 ├── main.py                    # Original CLI entry point (legacy)
 ├── main_enhanced.py           # Enhanced CLI with database integration
+├── main_multilingual.py       # Multilingual CLI (English, Hindi, Tamil)
 ├── chatbot.py                # Original chatbot logic (legacy)
 ├── enhanced_chatbot.py       # Enhanced chatbot with session management
+├── multilingual_chatbot.py   # Multilingual chatbot with cultural adaptation
 ├── session_manager.py        # User session and context management
 ├── database_interface.py     # Database abstraction layer
+├── language_manager.py       # Language selection and localization
 ├── assessment_api.py         # Assessment system and external API handling
+├── languages/               # Localization files (en.json, hi.json, ta.json)
 ├── backend/                  # Django REST API (partial implementation)
 │   ├── requirements.txt      # Django, DRF, OpenAI, PostgreSQL dependencies
 │   └── mindmate/            # Django project configuration
@@ -139,6 +150,14 @@ The `session_manager.py` handles:
 - **`enhanced_chatbot.py`**: Session-aware chatbot with persistent context
 - **`main_enhanced.py`**: CLI interface with backend integration options
 - **Command-line flags**: `--backend`, `--user-id`, `--api-url` for flexible deployment
+
+### Multilingual Support
+The `language_manager.py` and `multilingual_chatbot.py` provide:
+- **Language Selection**: User chooses from English, Hindi, Tamil at startup
+- **Cultural Adaptation**: Localized crisis resources, coping strategies, and conversation styles
+- **Assessment Translation**: PHQ-9 and GAD-7 questions in all supported languages
+- **Smart Detection**: Crisis and mood detection patterns for all languages
+- **Persistent Preferences**: User language choice saved across sessions
 
 ## MindMate Chatbot Instructions
 

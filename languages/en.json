@@ -1,0 +1,111 @@
+{
+  "translations": {
+    "welcome_message": "Hi! I'm MindMate. How are you feeling today?",
+    "welcome_back": "Welcome back to MindMate! It's good to see you again. How are you feeling today?",
+    "goodbye": "Take care! Remember, you're not alone. Stay safe!",
+    "typing_indicator": "MindMate is typing",
+    "help_title": "**Available Commands:**",
+    "help_clear": "'clear' - Clear conversation (start fresh)",
+    "help_mood": "'mood' - View your mood tracking summary",
+    "help_assessment": "'assessment' - Take a mental health assessment",
+    "help_results": "'results' - Share external assessment results",
+    "help_session": "'session' - View session information",
+    "help_language": "'language' - Change language",
+    "help_quit": "'quit' - Exit the application",
+    "conversation_cleared": "Conversation cleared. How can I support you today?",
+    "mood_summary_title": "Your recent mood patterns:",
+    "no_mood_data": "No mood data tracked yet.",
+    "session_info_title": "**Session Information:**",
+    "session_user_id": "User ID: {user_id}",
+    "session_duration": "Session Duration: {duration:.1f} minutes",
+    "session_returning": "Returning User: {returning}",
+    "session_conversations": "Total Conversations: {count}",
+    "assessment_title": "**Mental Health Assessment Options**",
+    "assessment_question": "Which assessment would you like to take?",
+    "assessment_phq9": "1. PHQ-9 (Depression screening)",
+    "assessment_gad7": "2. GAD-7 (Anxiety screening)",
+    "assessment_external": "3. Get external assessment link",
+    "assessment_choice_prompt": "Enter 1, 2, or 3: ",
+    "assessment_invalid": "Invalid choice. Please type 'assessment' again to start.",
+    "phq9_title": "**PHQ-9 Depression Assessment**",
+    "gad7_title": "**GAD-7 Anxiety Assessment**",
+    "assessment_disclaimer": "*Important Disclaimer: This is a screening tool, not a diagnostic instrument.*",
+    "assessment_instructions": "I'll ask you {count} questions. Please respond with a number (0-3):",
+    "assessment_scale_0": "0 = Not at all",
+    "assessment_scale_1": "1 = Several days",
+    "assessment_scale_2": "2 = More than half the days",
+    "assessment_scale_3": "3 = Nearly every day",
+    "assessment_question_num": "Question {num}: {text}",
+    "assessment_invalid_response": "Please enter a number between 0-3.",
+    "assessment_completed": "✅ Assessment completed!",
+    "external_assessment_title": "**External Assessment Options**",
+    "external_phq9": "1. PHQ-9 Link: {link}",
+    "external_gad7": "2. GAD-7 Link: {link}",
+    "external_instructions": "After completing the external assessment, type 'results' to share them with me.",
+    "results_title": "**Share External Assessment Results**",
+    "results_instructions": "Please provide your assessment results:",
+    "results_type_prompt": "Assessment type (phq9/gad7): ",
+    "results_score_prompt": "Total score: ",
+    "results_responses_prompt": "Individual responses (comma-separated, optional): ",
+    "results_invalid_type": "Invalid assessment type. Please use 'phq9' or 'gad7'.",
+    "results_invalid_input": "Invalid input. Please enter valid numbers.",
+    "content_warning": "Please keep our conversation supportive and safe.",
+    "api_error": "I'm having trouble connecting right now. Please try again in a moment.",
+    "crisis_backup": "If you're in crisis, please call 988 for immediate support.",
+    "general_error": "ERROR: Something went wrong. Please try again.",
+    "language_changed": "Language changed to English.",
+    "coping_general": "Let's explore some general coping strategies that might help."
+  },
+  "cultural_context": {
+    "crisis_resources": {
+      "suicide_prevention": "National Suicide Prevention Lifeline: 988",
+      "crisis_text": "Crisis Text Line: Text HOME to 741741",
+      "emergency": "Emergency Services: 911",
+      "samhsa": "SAMHSA Helpline: 1-800-662-4357"
+    },
+    "mental_health_resources": {
+      "therapy_finder": "Psychology Today (therapist finder)",
+      "community_centers": "Local community mental health centers",
+      "employee_assistance": "Employee assistance programs",
+      "nami": "National Alliance on Mental Illness (nami.org)",
+      "adaa": "Anxiety and Depression Association (adaa.org)"
+    },
+    "ai_instructions": {
+      "additional_context": "Consider the user is from an English-speaking background. Use clear, direct communication.",
+      "language_instruction": "Always respond in English. Use simple, clear language that's easy to understand."
+    },
+    "coping_strategies": {
+      "anxious": "**Anxiety Management Techniques:**\n• 4-7-8 Breathing: Inhale for 4, hold for 7, exhale for 8\n• Grounding (5-4-3-2-1): Name 5 things you see, 4 you touch, 3 you hear, 2 you smell, 1 you taste\n• Challenge anxious thoughts: Ask 'Is this thought realistic?'\n• Progressive muscle relaxation",
+      "depressed": "**Depression Support Strategies:**\n• Light exposure: Spend time near a window or outside\n• Social connection: Reach out to one person, even briefly\n• Small accomplishments: Set one tiny, achievable goal\n• Gratitude practice: Write down 3 things you're grateful for\n• Gentle movement: Even a 5-minute walk can help",
+      "angry": "**Anger Management Techniques:**\n• Deep breathing: Slow, deep breaths\n• Physical release: Go for a walk or do jumping jacks\n• Express safely: Write in a journal\n• Cool down: Take a break from the situation\n• Reframe: Ask 'What can I control?'"
+    },
+    "assessments": {
+      "phq9": {
+        "instructions": "Over the last 2 weeks, how often have you been bothered by any of the following problems?",
+        "questions": [
+          "Little interest or pleasure in doing things",
+          "Feeling down, depressed, or hopeless",
+          "Trouble falling or staying asleep, or sleeping too much",
+          "Feeling tired or having little energy",
+          "Poor appetite or overeating",
+          "Feeling bad about yourself or that you are a failure or have let yourself or your family down",
+          "Trouble concentrating on things, such as reading the newspaper or watching television",
+          "Moving or speaking so slowly that other people could have noticed? Or the opposite being so fidgety or restless that you have been moving around a lot more than usual",
+          "Thoughts that you would be better off dead, or of hurting yourself"
+        ]
+      },
+      "gad7": {
+        "instructions": "Over the last 2 weeks, how often have you been bothered by the following problems?",
+        "questions": [
+          "Feeling nervous, anxious, or on edge",
+          "Not being able to stop or control worrying",
+          "Worrying too much about different things",
+          "Trouble relaxing",
+          "Being so restless that it is hard to sit still",
+          "Becoming easily annoyed or irritable",
+          "Feeling afraid, as if something awful might happen"
+        ]
+      }
+    }
+  }
+}
