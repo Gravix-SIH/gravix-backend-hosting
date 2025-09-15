@@ -26,8 +26,10 @@ This guide covers deploying the MindMate Django backend API to PythonAnywhere.
 ```bash
 # On PythonAnywhere bash console
 cd ~
-git clone https://github.com/yourusername/your-repo.git mindmate
-cd mindmate/backend
+mkdir SIH
+cd SIH
+git clone https://github.com/vishrav06/SIH-ChatBot.git
+cd SIH-ChatBot/backend
 ```
 
 ### 2. Create Virtual Environment
@@ -46,7 +48,7 @@ nano .env
 # Update with your values:
 SECRET_KEY=your-secret-key-here
 DEBUG=False
-ALLOWED_HOSTS=yourusername.pythonanywhere.com
+ALLOWED_HOSTS=vishrav06.pythonanywhere.com
 OPENAI_API_KEY=your-openai-api-key
 ```
 
@@ -70,7 +72,7 @@ import os
 import sys
 
 # Add your project directory to Python path
-path = '/home/yourusername/mindmate/backend'
+path = '/home/vishrav06/SIH/SIH-ChatBot/backend'
 if path not in sys.path:
     sys.path.insert(0, path)
 
@@ -84,19 +86,19 @@ application = get_wsgi_application()
 
 ### 7. Web App Configuration
 In PythonAnywhere Web tab:
-- Source code: `/home/yourusername/mindmate/backend`
-- Working directory: `/home/yourusername/mindmate/backend`
-- Virtualenv: `/home/yourusername/.virtualenvs/mindmate`
+- Source code: `/home/vishrav06/SIH/SIH-ChatBot/backend`
+- Working directory: `/home/vishrav06/SIH/SIH-ChatBot/backend`
+- Virtualenv: `/home/vishrav06/.virtualenvs/mindmate`
 
 ### 8. Static Files Mapping
 - URL: `/static/`
-- Directory: `/home/yourusername/mindmate/backend/static`
+- Directory: `/home/vishrav06/SIH/SIH-ChatBot/backend/static`
 
 ## API Usage Examples
 
 ### Chat Request
 ```bash
-curl -X POST https://yourusername.pythonanywhere.com/api/chat/ \
+curl -X POST https://vishrav06.pythonanywhere.com/api/chat/ \
   -H "Content-Type: application/json" \
   -d '{
     "message": "I am feeling depressed lately",
@@ -106,7 +108,7 @@ curl -X POST https://yourusername.pythonanywhere.com/api/chat/ \
 
 ### Assessment Submission
 ```bash
-curl -X POST https://yourusername.pythonanywhere.com/api/assessments/ \
+curl -X POST https://vishrav06.pythonanywhere.com/api/assessments/ \
   -H "Content-Type: application/json" \
   -d '{
     "assessment_type": "phq9",
@@ -120,7 +122,7 @@ curl -X POST https://yourusername.pythonanywhere.com/api/assessments/ \
 ### JavaScript Example
 ```javascript
 // Chat with the bot
-const chatResponse = await fetch('https://yourusername.pythonanywhere.com/api/chat/', {
+const chatResponse = await fetch('https://vishrav06.pythonanywhere.com/api/chat/', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',

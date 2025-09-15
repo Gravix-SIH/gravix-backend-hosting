@@ -16,7 +16,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-this-in-produc
 DEBUG = config('DEBUG', default=True, cast=bool)
 
 # PythonAnywhere specific settings
-ALLOWED_HOSTS = ['yourusername.pythonanywhere.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['vishrav06.pythonanywhere.com', 'localhost', '127.0.0.1']
 
 # Application definition
 INSTALLED_APPS = [
@@ -94,7 +94,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images) - PythonAnywhere specific
 STATIC_URL = '/static/'
-STATIC_ROOT = '/home/yourusername/mindmate/static'
+STATIC_ROOT = '/home/vishrav06/SIH/SIH-ChatBot/backend/static'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -118,7 +118,7 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://yourusername.pythonanywhere.com",
+    "https://vishrav06.pythonanywhere.com",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
