@@ -246,3 +246,98 @@ All endpoints except `/api/anon`, `/api/signup`, `/api/login`, and `/api/refresh
 ```
 Authorization: Bearer <jwt-access-token>
 ```
+
+## Chat Endpoints
+
+### Health Check
+Check if the chat service is running.
+
+```
+GET /api/v1/chatbot/health/
+```
+
+**Response**
+```json
+{
+    "status": "healthy",
+    "timestamp": "2025-09-16T10:00:00Z"
+}
+```
+
+### Chat Message
+Send a message to the AI chatbot and get a response.
+
+```
+POST /api/v1/chatbot/chat/
+```
+
+**Input**
+```json
+{
+    "message": "I'm feeling anxious about my exams",
+    "session_id": "uuid-here",  // Optional
+    "anonymous_id": "anon_id"   // Optional
+}
+```
+
+**Response**
+```json
+{
+    "response": "I understand that exams can be stressful...",
+    "session_id": "uuid-here",
+    "crisis_detected": false     // true if crisis keywords detected
+}
+```
+
+#### Features:
+- Maintains conversation history within a session
+- Detects and tracks user's mood patterns
+- Crisis detection and immediate support resources
+- Works with both authenticated and anonymous users
+- Session persistence for continuous conversations
+
+### Get Conversation History
+Retrieve the chat history for a specific session.
+
+```
+GET /api/v1/chatbot/chat/history/<session_id>/
+```
+
+**Response**
+```json
+{
+    "messages": [
+        {
+            "sender": "user",
+            "message": "Hi, I'm feeling stressed",
+            "timestamp": "2025-09-16T10:00:00Z",
+            "mood": "anxious"
+        },
+        {
+            "sender": "bot",
+            "message": "I understand that you're feeling stressed...",
+            "timestamp": "2025-09-16T10:00:01Z"
+        }
+    ]
+}
+```
+
+### Get Mood Summary
+Get a summary of mood patterns for a specific chat session.
+
+```
+GET /api/v1/chatbot/chat/mood/<session_id>/
+```
+
+**Response**
+```json
+{
+    "session_id": "uuid-here",
+    "mood_summary": {
+        "anxious": 3,
+        "sad": 1,
+        "happy": 2
+    },
+    "start_date": "2025-09-16T10:00:00Z",
+    "end_date": "2025-09-16T11:00:00Z"
+}
