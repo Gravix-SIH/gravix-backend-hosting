@@ -20,7 +20,9 @@ from users.views import RootStatusView
 
 urlpatterns = [
     path("", RootStatusView.as_view(), name="root-status"),
-    path('admin/', admin.site.urls),
-    path('api/auth/', include('users.urls')),
-    path('api/', include('assessments.urls')),
+    path("api/", include([
+        path("", RootStatusView.as_view(), name="root-status"),
+        path("", include('users.urls')),
+        path("", include('assessments.urls')),
+    ])),
 ]

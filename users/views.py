@@ -43,6 +43,14 @@ class LoginView(generics.GenericAPIView):
             **tokens
         })
     
+
+class MeView(generics.RetrieveUpdateAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
 class RootStatusView(APIView):
     permission_classes = [AllowAny]
 
