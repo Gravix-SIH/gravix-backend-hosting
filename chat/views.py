@@ -4,14 +4,14 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.http import JsonResponse
 from .models import ChatSession, ChatMessage, MoodEntry
+import openai
 import os
 import uuid
 import re
 from datetime import datetime
-from openai import OpenAI
 
-# Set up OpenAI client
-openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY')) if os.getenv('OPENAI_API_KEY') else None
+# Set up OpenAI API key
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -102,16 +102,14 @@ Would you like me to help you find local mental health resources or talk about w
                 Keep responses concise and supportive."""}
             ] + conversation_context
 
-            if openai_client:
-                response = openai_client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    messages=messages,
-                    max_tokens=300,
-                    temperature=0.7
-                )
-                bot_response = response.choices[0].message.content
-            else:
-                raise Exception("OpenAI client not configured")
+            response = openai.ChatCompletion.create(
+                model="gpt-4o-mini",
+                messages=messages,
+                max_tokens=300,
+                temperature=0.7
+            )
+
+            bot_response = response.choices[0].message.content
 
         except Exception as e:
             bot_response = "I'm here to listen and support you. Sometimes I have trouble with my responses, but I want you to know that your feelings are valid and important."
