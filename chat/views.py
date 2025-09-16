@@ -103,7 +103,7 @@ Would you like me to help you find local mental health resources or talk about w
             ] + conversation_context
 
             response = openai.ChatCompletion.create(
-                model="gpt-4o-mini",
+                model="gpt-3.5-turbo",  # Using a valid OpenAI model
                 messages=messages,
                 max_tokens=300,
                 temperature=0.7
@@ -112,7 +112,10 @@ Would you like me to help you find local mental health resources or talk about w
             bot_response = response.choices[0].message.content
 
         except Exception as e:
+            print(f"OpenAI API Error: {str(e)}")  # This will show in Vercel logs
             bot_response = "I'm here to listen and support you. Sometimes I have trouble with my responses, but I want you to know that your feelings are valid and important."
+            if not openai.api_key:
+                print("OpenAI API key is not set")
 
         # Extract mood if mentioned
         mood_patterns = {
