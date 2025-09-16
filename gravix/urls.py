@@ -23,7 +23,6 @@ urlpatterns = [
     path("api/", include([
         path("", RootStatusView.as_view(), name="root-status"),
         path("", include('users.urls')),
-        path("", include('assessments.urls')),
     ])),
     path("api/v1/chatbot/", include('chat.urls')),
 ]
