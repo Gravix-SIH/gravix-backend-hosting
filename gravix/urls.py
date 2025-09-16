@@ -16,8 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from users.views import RootStatusView
 
 urlpatterns = [
+    path("", RootStatusView.as_view(), name="root-status"),
     path('admin/', admin.site.urls),
     path('api/auth/', include('users.urls')),
     path('api/', include('assessments.urls')),
