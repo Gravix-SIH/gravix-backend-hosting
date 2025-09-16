@@ -3,15 +3,27 @@ from .models import User
 from django.contrib.auth import authenticate
 
 class UserSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+    email = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = [
-            'id', 'email', 'name', 'department', 'role',
+            'id', 'name', 'email', 'department', 'role',
             'is_anonymous', 'anon_id', 'is_active',
             'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'email', 'anon_id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'anon_id', 'created_at', 'updated_at']
+    
+    def get_name(self, obj):
+        if obj.is_anonymous:
+            return obj.anon_id
+        return obj.name
+    
+    def get_email(self, obj):
+        if obj.is_anonymous:
+            return None
+        return obj.email
 
 class SignupSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)

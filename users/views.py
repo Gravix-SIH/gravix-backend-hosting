@@ -7,6 +7,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from .serializers import SignupSerializer, LoginSerializer, UserSerializer
 from .models import User
+import uuid
+
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
@@ -80,6 +82,31 @@ class UserDetailView(generics.GenericAPIView):
         user.delete()
         return Response({"detail": "User deleted"}, status=status.HTTP_204_NO_CONTENT)
 
+
+class AnonymousSessionView(APIView):
+    permission_classes = [AllowAny]
+    
+    def post(self, request, *args, **kwargs):
+        anon_id = f"anon_{uuid.uuid4().hex[:8]}"
+        anon_user = User.objects.create(
+            username=anon_id,
+            email=f"{anon_id}@anonymous.temp",
+            name="",
+            is_anonymous=True,
+            anon_id=anon_id,
+            role=User.Role.ANONYMOUS,
+            is_active=True
+        )
+        
+        refresh = RefreshToken.for_user(anon_user)
+        refresh['role'] = anon_user.role
+        refresh['is_anonymous'] = True
+        
+        return Response({
+            'user': UserSerializer(anon_user).data,
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+        })
 
 class RootStatusView(APIView):
     permission_classes = [AllowAny]

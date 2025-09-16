@@ -7,6 +7,7 @@ class User(AbstractUser):
         STUDENT = "student", "Student"
         COUNSELOR = "counsellor", "Counselor"
         ADMIN = "admin", "Admin"
+        ANONYMOUS = "anonymous", "Anonymous"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(unique=True)
