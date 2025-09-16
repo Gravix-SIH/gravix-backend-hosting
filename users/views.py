@@ -1,4 +1,4 @@
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -50,6 +50,36 @@ class MeView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user
+
+class UserDetailView(generics.GenericAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'id'
+
+    def get_object(self):
+        obj = super().get_object()
+        if self.request.user.role != 'admin' and obj.id != self.request.user.id:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You do not have permission to access this user.")
+        return obj
+
+    def patch(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = self.get_serializer(user, data=request.data, partial=True)
+        
+        if 'role' in request.data and request.user.role != 'admin':
+            return Response({"detail": "Only admin can update role"}, status=status.HTTP_403_FORBIDDEN)
+        
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def delete(self, request, *args, **kwargs):
+        user = self.get_object()
+        user.delete()
+        return Response({"detail": "User deleted"}, status=status.HTTP_204_NO_CONTENT)
+
 
 class RootStatusView(APIView):
     permission_classes = [AllowAny]
