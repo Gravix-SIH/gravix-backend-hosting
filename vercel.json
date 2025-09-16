@@ -1,8 +1,15 @@
 {
   "builds": [
-    { "src": "gravix/wsgi.py", "use": "@vercel/python" }
+    { 
+      "src": "gravix/wsgi.py",
+      "use": "@vercel/python",
+      "config": { "maxLambdaSize": "15mb" }
+    }
   ],
   "routes": [
     { "src": "/(.*)", "dest": "gravix/wsgi.py" }
-  ]
+  ],
+  "env": {
+    "PYTHONPATH": "."
+  }
 }
