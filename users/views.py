@@ -94,7 +94,7 @@ class AnonymousSessionView(APIView):
             name="",
             is_anonymous=True,
             anon_id=anon_id,
-            role=User.Role.ANONYMOUS,
+            role=User.Role.STUDENT,
             is_active=True
         )
         
