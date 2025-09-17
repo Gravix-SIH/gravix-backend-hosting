@@ -199,3 +199,60 @@ def mood_summary(request, session_id):
 
     except ChatSession.DoesNotExist:
         return Response({'mood_summary': []})
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def create_new_session(request):
+    """Create a new chat session and return session ID."""
+    try:
+        session = ChatSession.objects.create(
+            session_id=uuid.uuid4(),
+            anonymous_id=request.data.get('anonymous_id', None)
+        )
+
+        return Response({
+            'session_id': str(session.session_id),
+            'status': 'created',
+            'timestamp': session.created_at.isoformat()
+        })
+
+    except Exception as e:
+        return Response({
+            'error': 'Failed to create session',
+            'status': 'error'
+        }, status=500)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_all_sessions(request):
+    """Get all chat sessions with their titles (first user message)."""
+    try:
+        sessions = ChatSession.objects.all().order_by('-created_at')
+        session_list = []
+
+        for session in sessions:
+            first_message = ChatMessage.objects.filter(
+                session=session,
+                sender='user'
+            ).order_by('timestamp').first()
+
+            title = first_message.message if first_message else "New Chat"
+            if len(title) > 50:
+                title = title[:47] + "..."
+
+            session_list.append({
+                'session_id': str(session.session_id),
+                'title': title,
+                'created_at': session.created_at.isoformat()
+            })
+
+        return Response({
+            'sessions': session_list,
+            'total_count': len(session_list)
+        })
+
+    except Exception as e:
+        return Response({
+            'error': 'Failed to fetch sessions',
+            'sessions': []
+        }, status=500)
