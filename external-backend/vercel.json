@@ -1,0 +1,8 @@
+{
+  "builds": [
+    { "src": "gravix/wsgi.py", "use": "@vercel/python" }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "gravix/wsgi.py" }
+  ]
+}
