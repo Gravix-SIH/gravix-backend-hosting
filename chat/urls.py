@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import health_check, chat_endpoint, conversation_history, mood_summary, create_new_session, get_all_sessions
+from .views import health_check, chat_endpoint, conversation_history, mood_summary, create_new_session, get_all_sessions, update_session_title
 
 urlpatterns = [
     path('health/', health_check, name='chat-health'),
@@ -8,4 +8,5 @@ urlpatterns = [
     path('chat/history/', get_all_sessions, name='get-all-sessions'),
     path('chat/history/<str:session_id>/', conversation_history, name='conversation-history'),
     path('chat/mood/<str:session_id>/', mood_summary, name='mood-summary'),
+    path('chat/title/<str:session_id>/', update_session_title, name='update-session-title'),
 ]
