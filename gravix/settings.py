@@ -45,6 +45,13 @@ INSTALLED_APPS = [
 
     'users',
     'chat',
+    'bookings',
+    'resources',
+    'assessments',
+    'student',
+    'auditlog',
+    'admin_portal',
+    'counsellor',
 ]
 
 MIDDLEWARE = [
@@ -82,10 +89,14 @@ WSGI_APPLICATION = 'gravix.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': dj_database_url.parse(DATABASE_URL)
+    'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
     if DATABASE_URL else {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'gravix',
+        'USER': 'postgres',
+        'PASSWORD': 'password',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 

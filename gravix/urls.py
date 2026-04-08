@@ -23,6 +23,10 @@ urlpatterns = [
     path("api/", include([
         path("", RootStatusView.as_view(), name="root-status"),
         path("", include('users.urls')),
+        path("admin/", include('admin_portal.urls')),
+        path("admin/", include('auditlog.urls')),
     ])),
     path("api/v1/chatbot/", include('chat.urls')),
+    path("api/v1/student/", include('student.urls')),
+    path("api/counsellor/", include('counsellor.urls')),
 ]

@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import User
 from django.contrib.auth import authenticate
 
+
 class UserSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
     email = serializers.SerializerMethodField()
@@ -14,16 +15,17 @@ class UserSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'anon_id', 'created_at', 'updated_at']
-    
+
     def get_name(self, obj):
         if obj.is_anonymous:
             return obj.anon_id
         return obj.name
-    
+
     def get_email(self, obj):
         if obj.is_anonymous:
-            return None
+            return ""
         return obj.email
+
 
 class SignupSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -42,11 +44,12 @@ class SignupSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
+
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
-    def validate(self,data):
+    def validate(self, data):
         user = authenticate(email=data['email'], password=data['password'])
         if not user:
             raise serializers.ValidationError("Invalid credentials")
