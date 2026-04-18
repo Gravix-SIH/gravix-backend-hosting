@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User
+from .models import User, VerificationToken
 from django.contrib.auth import authenticate
 
 
@@ -11,7 +11,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'id', 'name', 'email', 'department', 'role',
-            'is_anonymous', 'anon_id', 'is_active',
+            'is_anonymous', 'anon_id', 'is_active', 'is_verified',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'anon_id', 'created_at', 'updated_at']
@@ -25,6 +25,16 @@ class UserSerializer(serializers.ModelSerializer):
         if obj.is_anonymous:
             return ""
         return obj.email
+
+
+class VerificationTokenSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    name = serializers.CharField(max_length=150)
+    password = serializers.CharField(write_only=True, min_length=8)
+    role = serializers.ChoiceField(choices=User.Role.choices, default=User.Role.STUDENT)
+
+    def create(self, validated_data):
+        raise NotImplementedError("Use VerificationToken.objects.create() directly")
 
 
 class SignupSerializer(serializers.ModelSerializer):

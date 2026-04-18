@@ -89,6 +89,7 @@ class Command(BaseCommand):
                 "name": "System Admin",
                 "role": "admin",
                 "is_active": True,
+                "is_verified": True,
             },
         )
         if created:
@@ -116,6 +117,7 @@ class Command(BaseCommand):
                     "role": "counsellor",
                     "department": dept,
                     "is_active": True,
+                    "is_verified": True,
                 },
             )
             if created:
@@ -151,6 +153,7 @@ class Command(BaseCommand):
                     "name": f"{first} {last}",
                     "role": "student",
                     "is_active": True,
+                    "is_verified": True,
                 },
             )
             if is_new:

@@ -2,9 +2,9 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from django.http import JsonResponse
+from rest_framework.authentication import get_user_model
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import ChatSession, ChatMessage, MoodEntry
-import os
 import uuid
 import re
 from datetime import datetime
@@ -13,6 +13,9 @@ from openai import OpenAI
 
 # Initialize Groq client
 _client = None
+
+User = get_user_model()
+
 
 def get_client():
     """Get or initialize Groq client."""
@@ -27,6 +30,52 @@ def get_client():
         )
     return _client
 
+
+def get_session_owner(request):
+    """
+    Determine the owner identity for a chat session from the request.
+    Returns (user_id, anonymous_id) tuple.
+
+    If a valid JWT Bearer token is present in the Authorization header,
+    uses the authenticated user. Otherwise falls back to anonymous_id
+    from request body/params for unauthenticated/anonymous users.
+    """
+    user_id = None
+    anonymous_id = None
+
+    auth_header = request.headers.get('Authorization', '')
+
+    if auth_header.startswith('Bearer '):
+        token = auth_header[7:]
+        jwt_auth = JWTAuthentication()
+        try:
+            validated_token = jwt_auth.get_validated_token(token)
+            user_id = validated_token.get('user_id')
+        except Exception:
+            # Token invalid or expired — fall back to anonymous_id
+            pass
+
+    if not user_id:
+        # Fall back to anonymous_id from request
+        anonymous_id = request.data.get('anonymous_id') or request.query_params.get('anonymous_id')
+
+    return user_id, anonymous_id
+
+
+def get_user_sessions(request):
+    """
+    Get all ChatSession instances owned by the current user or anonymous_id.
+    """
+    user_id, anonymous_id = get_session_owner(request)
+
+    if user_id:
+        return ChatSession.objects.filter(user_id=user_id)
+    elif anonymous_id:
+        return ChatSession.objects.filter(anonymous_id=anonymous_id, user__isnull=True)
+    else:
+        # No identity — return empty queryset
+        return ChatSession.objects.none()
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def health_check(request):
@@ -36,9 +85,10 @@ def health_check(request):
 @api_view(['DELETE'])
 @permission_classes([AllowAny])
 def delete_session(request, session_id):
-    """Delete a chat session."""
+    """Delete a chat session. Only the owner can delete their session."""
     try:
-        session = ChatSession.objects.get(session_id=session_id)
+        sessions = get_user_sessions(request)
+        session = sessions.get(session_id=session_id)
         session.delete()
         return Response({'status': 'deleted', 'session_id': str(session_id)})
     except ChatSession.DoesNotExist:
@@ -124,18 +174,31 @@ def chat_endpoint(request):
         if not user_message:
             return Response({'error': 'Message is required'}, status=400)
 
-        # Get or create session
+        user_id, _ = get_session_owner(request)
+
+        # Get or create session with ownership check
         session = None
         if session_id:
+            sessions = get_user_sessions(request)
             try:
-                session = ChatSession.objects.get(session_id=session_id)
+                session = sessions.get(session_id=session_id)
             except ChatSession.DoesNotExist:
                 pass
 
         if not session:
+            # Check if a session with this session_id already exists in the DB
+            # (it may belong to another user — reject it)
+            if session_id:
+                if ChatSession.objects.filter(session_id=session_id).exists():
+                    return Response(
+                        {'error': 'Session not found or access denied'},
+                        status=403
+                    )
+            # Create new session owned by the current user/anonymous_id
             session = ChatSession.objects.create(
                 session_id=uuid.uuid4() if not session_id else session_id,
-                anonymous_id=anonymous_id
+                user_id=user_id if user_id else None,
+                anonymous_id=anonymous_id if not user_id else None
             )
 
         # Save user message
@@ -237,9 +300,10 @@ Would you like me to help you find local mental health resources or talk about w
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def conversation_history(request, session_id):
-    """Get conversation history for a session."""
+    """Get conversation history for a session. Only the owner can access."""
     try:
-        session = ChatSession.objects.get(session_id=session_id)
+        sessions = get_user_sessions(request)
+        session = sessions.get(session_id=session_id)
         messages = ChatMessage.objects.filter(session=session).order_by('timestamp')
 
         conversations = []
@@ -259,9 +323,10 @@ def conversation_history(request, session_id):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def mood_summary(request, session_id):
-    """Get mood summary for a session."""
+    """Get mood summary for a session. Only the owner can access."""
     try:
-        session = ChatSession.objects.get(session_id=session_id)
+        sessions = get_user_sessions(request)
+        session = sessions.get(session_id=session_id)
         moods = MoodEntry.objects.filter(session=session).order_by('-timestamp')
 
         mood_data = []
@@ -282,9 +347,12 @@ def mood_summary(request, session_id):
 def create_new_session(request):
     """Create a new chat session and return session ID."""
     try:
+        user_id, anonymous_id = get_session_owner(request)
+
         session = ChatSession.objects.create(
             session_id=uuid.uuid4(),
-            anonymous_id=request.data.get('anonymous_id', None)
+            user_id=user_id if user_id else None,
+            anonymous_id=anonymous_id if not user_id else None
         )
 
         return Response({
@@ -302,9 +370,9 @@ def create_new_session(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_all_sessions(request):
-    """Get all chat sessions with their titles (first user message) and last active time."""
+    """Get all chat sessions owned by the current user/anonymous_id with their titles and last active time."""
     try:
-        sessions = ChatSession.objects.all().order_by('-updated_at')
+        sessions = get_user_sessions(request).order_by('-updated_at')
         session_list = []
 
         for session in sessions:

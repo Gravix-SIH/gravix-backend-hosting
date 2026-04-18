@@ -1,6 +1,9 @@
 import uuid
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
+from datetime import timedelta
+
 
 class User(AbstractUser):
     class Role(models.TextChoices):
@@ -18,6 +21,7 @@ class User(AbstractUser):
     anon_id = models.CharField(max_length=50, null=True, blank=True)
 
     is_active = models.BooleanField(default=True)
+    is_verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -32,3 +36,24 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+
+
+class VerificationToken(models.Model):
+    email = models.EmailField()
+    code = models.CharField(max_length=128)  # hashed via make_password
+    name = models.CharField(max_length=150)
+    password = models.CharField(max_length=128)  # hashed via make_password
+    role = models.CharField(max_length=20, default='student')
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    used = models.BooleanField(default=False)
+
+    def is_expired(self):
+        return timezone.now() > self.expires_at
+
+    @staticmethod
+    def generate_code():
+        return str(uuid.uuid4().int)[:6]
+
+    def __str__(self):
+        return f"VerificationToken({self.email})"
